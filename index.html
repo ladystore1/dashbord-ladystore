@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lady Store - Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @font-face {
+            font-family: 'LadyStore';
+            src: url('https://fonts.cdnfonts.com/css/aeonik') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        :root {
+            --primary-text: #000000;
+            --secondary-text: #555555;
+            --accent-color: #000000;
+            --bg-color: #FFFFFF;
+            --card-bg: #F5F5F5;
+            --border-color: #DDDDDD;
+            --discount-color: #FF6B6B;
+            --link-color: #1DA1F2;
+            --primary-color: #FFFFFF;
+            --secondary-color: #000000;
+            --blue-color: #1e90ff;
+            --instagram-color: #E1306C;
+            --facebook-color: #1877F2;
+            --whatsapp-color: #25D366;
+            --sold-out-color: rgba(0, 0, 0, 0.5);
+            --header-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --admin-color: #4a148c;
+            --success-color: #4CAF50;
+            --warning-color: #FFC107;
+            --pending-color: #FF9800;
+            --processing-color: #2196F3;
+            --shipped-color: #673AB7;
+            --delivered-color: #4CAF50;
+            --cancelled-color: #F44336;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--primary-text);
+            padding-bottom: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .admin-title {
+            font-size: 2rem;
+            color: var(--admin-color);
+        }
+        
+        .admin-logout-btn {
+            background-color: var(--discount-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .admin-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        
+        .admin-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .admin-tab.active {
+            border-bottom-color: var(--admin-color);
+            color: var(--admin-color);
+            font-weight: 600;
+        }
+        
+        .admin-tab-content {
+            display: none;
+        }
+        
+        .admin-tab-content.active {
+            display: block;
+        }
+        
+        .admin-products-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .admin-product-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .admin-product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .admin-product-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .admin-edit-btn {
+            background-color: var(--admin-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .admin-delete-btn {
+            background-color: var(--discount-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .admin-add-btn {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+        
+        .admin-form-container {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+        }
+        
+        .admin-form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .admin-form-col {
+            flex: 1;
+        }
+        
+        .admin-form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .admin-form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+        }
+        
+        .admin-form-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            resize: vertical;
+        }
+        
+        .admin-form-submit {
+            background-color: var(--admin-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+        
+        .admin-image-preview {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .admin-collections-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .admin-collection-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .admin-collection-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .admin-success-message {
+            background-color: var(--success-color);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .admin-warning-message {
+            background-color: var(--warning-color);
+            color: var(--primary-text);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        /* Admin Orders Tab */
+        .admin-orders-list {
+            margin-top: 20px;
+        }
+        
+        .admin-order-card {
+            background-color: var(--bg-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .admin-order-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .admin-order-id {
+            font-weight: 600;
+            color: var(--admin-color);
+        }
+        
+        .admin-order-date {
+            color: var(--secondary-text);
+            font-size: 0.9rem;
+        }
+        
+        .admin-order-customer {
+            margin-bottom: 10px;
+        }
+        
+        .admin-order-total {
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        
+        .order-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .order-status.pending {
+            background-color: var(--pending-color);
+            color: white;
+        }
+        
+        .order-status.processing {
+            background-color: var(--processing-color);
+            color: white;
+        }
+        
+        .order-status.shipped {
+            background-color: var(--shipped-color);
+            color: white;
+        }
+        
+        .order-status.delivered {
+            background-color: var(--delivered-color);
+            color: white;
+        }
+        
+        .order-status.cancelled {
+            background-color: var(--cancelled-color);
+            color: white;
+        }
+        
+        .admin-order-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .admin-update-status {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            align-items: center;
+        }
+        
+        .admin-status-select {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .admin-update-btn {
+            background-color: var(--admin-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .order-items-list {
+            margin-top: 15px;
+        }
+        
+        .order-item-details {
+            display: flex;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .order-item-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        
+        .order-item-info {
+            flex: 1;
+        }
+        
+        .order-item-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .order-item-price {
+            color: var(--secondary-text);
+            margin-bottom: 5px;
+        }
+        
+        .customer-info-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--admin-color);
+        }
+        
+        .customer-info-item {
+            margin-bottom: 5px;
+        }
+
+        /* Analytics Styles */
+        .analytics-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .analytics-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            min-height: 300px;
+        }
+
+        .analytics-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+            color: var(--admin-color);
+        }
+
+        #topProductsList, #bottomProductsList, .cancel-reasons {
+            margin-top: 15px;
+        }
+
+        .product-list-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .target-card {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .target-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .target-controls input {
+            flex: 1;
+        }
+
+        .target-progress {
+            margin-top: auto;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar div {
+            height: 100%;
+            background-color: var(--success-color);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 200px !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Dashboard -->
+    <div class="container admin-dashboard" id="adminDashboard">
+        <div class="admin-header">
+            <h1 class="admin-title">Lady Store - Admin Dashboard</h1>
+            <button class="admin-logout-btn" id="adminLogoutBtn">Logout</button>
+        </div>
+        
+        <div class="admin-tabs">
+            <div class="admin-tab active" data-tab="products">Products</div>
+            <div class="admin-tab" data-tab="collections">Collections</div>
+            <div class="admin-tab" data-tab="orders">Orders</div>
+            <div class="admin-tab" data-tab="analytics">Analytics</div>
+        </div>
+        
+        <!-- Products Tab -->
+        <div class="admin-tab-content active" id="productsTab">
+            <div id="adminSuccessMessage" class="admin-success-message" style="display: none;"></div>
+            <div id="adminWarningMessage" class="admin-warning-message" style="display: none;"></div>
+            
+            <button class="admin-add-btn" id="addProductBtn">Add New Product</button>
+            
+            <div class="admin-form-container" id="productFormContainer" style="display: none;">
+                <h3 id="productFormTitle">Add New Product</h3>
+                <form id="productForm">
+                    <input type="hidden" id="productId">
+                    
+                    <div class="admin-form-row">
+                        <div class="admin-form-col">
+                            <label class="admin-form-label">Product Name*</label>
+                            <input type="text" class="admin-form-input" id="productName" required>
+                        </div>
+                        <div class="admin-form-col">
+                            <label class="admin-form-label">Category*</label>
+                            <select class="admin-form-input" id="productCategory" required>
+                                <option value="featured">Featured</option>
+                                <option value="eveningDresses">Evening Dresses</option>
+                                <option value="casualDresses">Casual Dresses</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-form-row">
+                        <div class="admin-form-col">
+                            <label class="admin-form-label">Price (EGP)*</label>
+                            <input type="number" class="admin-form-input" id="productPrice" required>
+                        </div>
+                        <div class="admin-form-col">
+                            <label class="admin-form-label">Old Price (EGP)</label>
+                            <input type="number" class="admin-form-input" id="productOldPrice">
+                        </div>
+                    </div>
+                    
+                    <div class="admin-form-row">
+                        <div class="admin-form-col">
+                            <label class="admin-form-label">Sizes (comma separated)</label>
+                            <input type="text" class="admin-form-input" id="productSizes" placeholder="S, M, L, XL">
+                        </div>
+                        <div class="admin-form-col">
+                            <label class="admin-form-label">Colors (comma separated)</label>
+                            <input type="text" class="admin-form-input" id="productColors" placeholder="Red, Black, Blue">
+                        </div>
+                    </div>
+                    
+                    <div class="admin-form-row">
+                        <div class="admin-form-col">
+                            <label class="admin-form-label">Image URLs (one per line)*</label>
+                            <textarea class="admin-form-textarea" id="productImages" required></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-form-row">
+                        <div class="admin-form-col">
+                            <label class="admin-form-label">Description*</label>
+                            <textarea class="admin-form-textarea" id="productDescription" required></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-form-row">
+                        <div class="admin-form-col">
+                            <label class="admin-form-label">
+                                <input type="checkbox" id="productIsBestSeller"> Best Seller
+                            </label>
+                        </div>
+                        <div class="admin-form-col">
+                            <label class="admin-form-label">
+                                <input type="checkbox" id="productSoldOut"> Sold Out
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="admin-form-submit">Save Product</button>
+                    <button type="button" class="admin-cancel-btn" id="cancelProductBtn" style="margin-left: 10px;">Cancel</button>
+                </form>
+            </div>
+            
+            <div class="admin-products-list" id="adminProductsList">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
+        
+        <!-- Collections Tab -->
+        <div class="admin-tab-content" id="collectionsTab">
+            <div id="collectionSuccessMessage" class="admin-success-message" style="display: none;"></div>
+            
+            <button class="admin-add-btn" id="addCollectionBtn">Add New Collection</button>
+            
+            <div class="admin-form-container" id="collectionFormContainer" style="display: none;">
+                <h3 id="collectionFormTitle">Add New Collection</h3>
+                <form id="collectionForm">
+                    <input type="hidden" id="collectionId">
+                    
+                    <div class="admin-form-row">
+                        <div class="admin-form-col">
+                            <label class="admin-form-label">Collection Name*</label>
+                            <input type="text" class="admin-form-input" id="collectionName" required>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-form-row">
+                        <div class="admin-form-col">
+                            <label class="admin-form-label">Image URL*</label>
+                            <input type="text" class="admin-form-input" id="collectionImage" required>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-form-row">
+                        <div class="admin-form-col">
+                            <label class="admin-form-label">Products (comma separated IDs)</label>
+                            <input type="text" class="admin-form-input" id="collectionProducts" placeholder="p1, p2, p3">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="admin-form-submit">Save Collection</button>
+                    <button type="button" class="admin-cancel-btn" id="cancelCollectionBtn" style="margin-left: 10px;">Cancel</button>
+                </form>
+            </div>
+            
+            <div class="admin-collections-list" id="adminCollectionsList">
+                <!-- Collections will be loaded here -->
+            </div>
+        </div>
+        
+        <!-- Orders Tab -->
+        <div class="admin-tab-content" id="ordersTab">
+            <div class="admin-orders-list" id="adminOrdersList">
+                <!-- Orders will be loaded here -->
+            </div>
+        </div>
+        
+        <!-- Analytics Tab -->
+        <div class="admin-tab-content" id="analyticsTab">
+            <div id="targetCongratsMessage" class="admin-success-message" style="display: none;">
+                <span>🎉 Congratulations! You've reached your target! 🎉</span>
+                <button id="closeCongratsMessage" style="background: none; border: none; cursor: pointer; margin-left: 10px;">✕</button>
+            </div>
+            
+            <div class="analytics-controls">
+                <select id="timePeriod" class="admin-form-input">
+                    <option value="day">Last Day</option>
+                    <option value="week">Last Week</option>
+                    <option value="month">Last Month</option>
+                    <option value="year">Last Year</option>
+                    <option value="all">All Time</option>
+                </select>
+                
+                <button id="refreshAnalytics" class="admin-form-submit">Refresh</button>
+            </div>
+            
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h3>Total Sales</h3>
+                    <div class="analytics-value" id="totalSales">0 EGP</div>
+                    <canvas id="salesChart"></canvas>
+                </div>
+                
+                <div class="analytics-card">
+                    <h3>Orders</h3>
+                    <div class="analytics-value" id="totalOrders">0</div>
+                    <canvas id="ordersChart"></canvas>
+                </div>
+                
+                <div class="analytics-card">
+                    <h3>Most Ordered</h3>
+                    <div class="analytics-value" id="mostOrdered">-</div>
+                    <div id="topProductsList"></div>
+                </div>
+                
+                <div class="analytics-card">
+                    <h3>Least Ordered</h3>
+                    <div class="analytics-value" id="leastOrdered">-</div>
+                    <div id="bottomProductsList"></div>
+                </div>
+                
+                <div class="analytics-card">
+                    <h3>Cancelled Orders</h3>
+                    <div class="analytics-value" id="cancelledOrders">0</div>
+                    <div class="cancel-reasons" id="cancelReasons"></div>
+                </div>
+                
+                <div class="analytics-card target-card">
+                    <h3>Sales Target</h3>
+                    <div class="target-controls">
+                        <input type="number" id="targetAmount" class="admin-form-input" placeholder="Target amount (EGP)">
+                        <button id="setTarget" class="admin-form-submit">Set Target</button>
+                    </div>
+                    <div class="target-progress">
+                        <div class="progress-bar" id="targetProgressBar">
+                            <div></div>
+                        </div>
+                        <span id="targetProgressText">0% of target</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_4U1Bk3K8J8Z9Z9Z9Z9Z9Z9Z9Z9Z",
+            authDomain: "test-7d761.firebaseapp.com",
+            databaseURL: "https://lady-store-75b73-default-rtdb.firebaseio.com/",
+            projectId: "test-7d761",
+            storageBucket: "test-7d761.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:abcdef1234567890"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Products Data
+        let products = {
+            featured: [],
+            eveningDresses: [],
+            casualDresses: []
+        };
+
+        // Collections Data
+        let collections = [];
+
+        // Orders Data
+        let orders = [];
+
+        // Analytics Variables
+        let salesChart, ordersChart;
+        let currentTarget = localStorage.getItem('salesTarget') ? parseInt(localStorage.getItem('salesTarget')) : null;
+        let targetAchieved = localStorage.getItem('targetAchieved') === 'true';
+
+        // Hardcoded admin credentials
+        const ADMIN_CREDENTIALS = {
+            email: "admin@lady.com",
+            password: "admin123"
+        };
+
+        // DOM Elements
+        const adminDashboard = document.getElementById('adminDashboard');
+        const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+        const adminProductsList = document.getElementById('adminProductsList');
+        const adminCollectionsList = document.getElementById('adminCollectionsList');
+        const adminOrdersList = document.getElementById('adminOrdersList');
+        const addProductBtn = document.getElementById('addProductBtn');
+        const productForm = document.getElementById('productForm');
+        const productFormContainer = document.getElementById('productFormContainer');
+        const productFormTitle = document.getElementById('productFormTitle');
+        const cancelProductBtn = document.getElementById('cancelProductBtn');
+        const adminSuccessMessage = document.getElementById('adminSuccessMessage');
+        const adminWarningMessage = document.getElementById('adminWarningMessage');
+        const addCollectionBtn = document.getElementById('addCollectionBtn');
+        const collectionForm = document.getElementById('collectionForm');
+        const collectionFormContainer = document.getElementById('collectionFormContainer');
+        const collectionFormTitle = document.getElementById('collectionFormTitle');
+        const cancelCollectionBtn = document.getElementById('cancelCollectionBtn');
+        const collectionSuccessMessage = document.getElementById('collectionSuccessMessage');
+
+        // Initialize Admin Panel
+        function initAdminPanel() {
+            // Check if admin is logged in
+            const isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
+            
+            if (!isLoggedIn) {
+                // Redirect to login page or show login modal
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            loadProductsFromFirebase();
+            loadCollectionsFromFirebase();
+            loadOrders();
+            setupEventListeners();
+        }
+
+        // Load products from Firebase
+        function loadProductsFromFirebase() {
+            database.ref('products').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    products.featured = data.featured || [];
+                    products.eveningDresses = data.eveningDresses || [];
+                    products.casualDresses = data.casualDresses || [];
+                    renderAdminProducts();
+                }
+            });
+        }
+
+        // Load collections from Firebase
+        function loadCollectionsFromFirebase() {
+            database.ref('collections').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    collections = Object.values(data);
+                    renderCollections();
+                }
+            });
+        }
+
+        // Load orders from Firebase
+        function loadOrders() {
+            database.ref('orders').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    orders = Object.values(data);
+                    renderAdminOrders();
+                }
+            });
+        }
+
+        // Render Admin Products
+        function renderAdminProducts() {
+            adminProductsList.innerHTML = '';
+            
+            // Combine all products from all categories
+            const allProducts = [
+                ...products.featured,
+                ...products.eveningDresses,
+                ...products.casualDresses
+            ];
+            
+            allProducts.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'admin-product-card';
+                productCard.innerHTML = `
+                    <img src="${product.images[0]}" alt="${product.name}" class="admin-product-image">
+                    <h4>${product.name}</h4>
+                    <p>${product.price} EGP</p>
+                    <p>${product.sizes || 'Sizes: S, M, L'}</p>
+                    <div class="admin-product-actions">
+                        <button class="admin-edit-btn" data-id="${product.id}">Edit</button>
+                        <button class="admin-delete-btn" data-id="${product.id}">Delete</button>
+                    </div>
+                `;
+                adminProductsList.appendChild(productCard);
+            });
+            
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.admin-edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => editProduct(btn.dataset.id));
+            });
+            
+            document.querySelectorAll('.admin-delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => deleteProduct(btn.dataset.id));
+            });
+        }
+
+        // Render Admin Collections
+        function renderCollections() {
+            adminCollectionsList.innerHTML = '';
+            
+            collections.forEach(collection => {
+                const collectionCard = document.createElement('div');
+                collectionCard.className = 'admin-collection-card';
+                collectionCard.innerHTML = `
+                    <img src="${collection.image}" alt="${collection.name}" class="admin-collection-image">
+                    <h4>${collection.name}</h4>
+                    <div class="admin-product-actions">
+                        <button class="admin-edit-btn" data-id="${collection.id}">Edit</button>
+                        <button class="admin-delete-btn" data-id="${collection.id}">Delete</button>
+                    </div>
+                `;
+                adminCollectionsList.appendChild(collectionCard);
+            });
+            
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.admin-edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => editCollection(btn.dataset.id));
+            });
+            
+            document.querySelectorAll('.admin-delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => deleteCollection(btn.dataset.id));
+            });
+        }
+
+        // Render Admin Orders
+        function renderAdminOrders() {
+            adminOrdersList.innerHTML = orders.map(order => `
+                <div class="admin-order-card">
+                    <div class="admin-order-header">
+                        <span class="admin-order-id">Order #${order.id.substring(0, 8)}</span>
+                        <span class="admin-order-date">${new Date(order.date).toLocaleDateString()}</span>
+                    </div>
+                    
+                    <div class="admin-order-customer">
+                        <strong>Customer:</strong> ${order.customer.name} (${order.customer.phone})<br>
+                        <strong>Address:</strong> ${order.customer.address}, ${order.customer.governorate}
+                        ${order.customer.floor ? `, Floor: ${order.customer.floor}` : ''}
+                        ${order.customer.apartment ? `, Apartment: ${order.customer.apartment}` : ''}
+                    </div>
+                    
+                    <div class="order-items-list">
+                        <strong>Order Items:</strong>
+                        ${order.items.map(item => `
+                            <div class="order-item-details">
+                                <img src="${item.image}" alt="${item.name}" class="order-item-image">
+                                <div class="order-item-info">
+                                    <div class="order-item-name">${item.name}</div>
+                                    <div class="order-item-price">${item.price} EGP</div>
+                                    <div class="order-item-price">Qty: ${item.quantity}</div>
+                                    ${item.color ? `<div class="order-item-price">Color: ${item.color}</div>` : ''}
+                                    ${item.size ? `<div class="order-item-price">Size: ${item.size}</div>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="admin-order-total">Total: ${order.total}</div>
+                    
+                    <div class="order-status ${order.status}">
+                        Status: ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    </div>
+                    
+                    ${order.customer.notes ? `<div><strong>Customer Notes:</strong> ${order.customer.notes}</div>` : ''}
+                    
+                    ${order.status !== 'cancelled' ? `
+                    <div class="admin-update-status">
+                        <select class="admin-status-select" id="statusSelect-${order.id}" 
+                            ${order.status === 'cancelled' ? 'disabled' : ''}>
+                            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
+                            <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                            <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                            <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
+                        <button class="admin-update-btn" onclick="updateOrderStatus('${order.id}')" 
+                            ${order.status === 'cancelled' ? 'disabled' : ''}>
+                            Update
+                        </button>
+                    </div>
+                    ` : `
+                    <div class="admin-update-status">
+                        <p><em>This order was cancelled and cannot be modified</em></p>
+                    </div>
+                    `}
+                </div>
+            `).join('');
+        }
+
+        // Initialize Analytics
+        function initAnalytics() {
+            if (targetAchieved) {
+                document.getElementById('targetCongratsMessage').style.display = 'flex';
+            }
+            
+            loadAnalyticsData('month');
+            setupChartJS();
+            setupTargetControls();
+        }
+
+        // Load Analytics Data
+        function loadAnalyticsData(timePeriod) {
+            // Get orders from Firebase
+            database.ref('orders').once('value', (snapshot) => {
+                const allOrders = snapshot.val() ? Object.values(snapshot.val()) : [];
+                
+                // Filter by time period
+                const now = new Date();
+                let filteredOrders = allOrders;
+                
+                if (timePeriod !== 'all') {
+                    let startDate = new Date();
+                    
+                    switch(timePeriod) {
+                        case 'day':
+                            startDate.setDate(now.getDate() - 1);
+                            break;
+                        case 'week':
+                            startDate.setDate(now.getDate() - 7);
+                            break;
+                        case 'month':
+                            startDate.setMonth(now.getMonth() - 1);
+                            break;
+                        case 'year':
+                            startDate.setFullYear(now.getFullYear() - 1);
+                            break;
+                    }
+                    
+                    filteredOrders = allOrders.filter(order => {
+                        const orderDate = new Date(order.date);
+                        return orderDate >= startDate;
+                    });
+                }
+                
+                // Calculate metrics
+                const totalSales = filteredOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
+                const totalOrders = filteredOrders.length;
+                const cancelledOrders = filteredOrders.filter(order => order.status === 'cancelled').length;
+                
+                // Update UI
+                document.getElementById('totalSales').textContent = `${totalSales.toFixed(2)} EGP`;
+                document.getElementById('totalOrders').textContent = totalOrders;
+                document.getElementById('cancelledOrders').textContent = cancelledOrders;
+                
+                // Calculate product popularity
+                const productCounts = {};
+                filteredOrders.forEach(order => {
+                    order.items.forEach(item => {
+                        if (!productCounts[item.id]) {
+                            productCounts[item.id] = {
+                                count: 0,
+                                name: item.name,
+                                price: item.price
+                            };
+                        }
+                        productCounts[item.id].count += item.quantity;
+                    });
+                });
+                
+                const productsArray = Object.keys(productCounts).map(id => ({
+                    id,
+                    ...productCounts[id]
+                })).sort((a, b) => b.count - a.count);
+                
+                // Display most/least ordered
+                if (productsArray.length > 0) {
+                    document.getElementById('mostOrdered').textContent = productsArray[0].name;
+                    document.getElementById('leastOrdered').textContent = productsArray[productsArray.length - 1].name;
+                    
+                    // Display top 5 products
+                    const topProductsList = document.getElementById('topProductsList');
+                    topProductsList.innerHTML = productsArray.slice(0, 5).map(product => `
+                        <div class="product-list-item">
+                            <span>${product.name}</span>
+                            <span>${product.count} sold</span>
+                        </div>
+                    `).join('');
+                    
+                    // Display bottom 5 products
+                    const bottomProductsList = document.getElementById('bottomProductsList');
+                    bottomProductsList.innerHTML = productsArray.slice(-5).reverse().map(product => `
+                        <div class="product-list-item">
+                            <span>${product.name}</span>
+                            <span>${product.count} sold</span>
+                        </div>
+                    `).join('');
+                }
+                
+                // Check target achievement
+                if (currentTarget) {
+                    const progress = Math.min((totalSales / currentTarget) * 100, 100);
+                    document.getElementById('targetProgressBar').firstChild.style.width = `${progress}%`;
+                    document.getElementById('targetProgressText').textContent = `${progress.toFixed(1)}% of target`;
+                    
+                    if (progress >= 100 && !targetAchieved) {
+                        // Target achieved!
+                        targetAchieved = true;
+                        localStorage.setItem('targetAchieved', 'true');
+                        document.getElementById('targetCongratsMessage').style.display = 'flex';
+                    }
+                }
+                
+                // Update charts
+                updateCharts(filteredOrders, timePeriod);
+            });
+        }
+
+        // Setup Chart.js
+        function setupChartJS() {
+            const salesCtx = document.getElementById('salesChart').getContext('2d');
+            const ordersCtx = document.getElementById('ordersChart').getContext('2d');
+            
+            salesChart = new Chart(salesCtx, {
+                type: 'line',
+                data: { labels: [], datasets: [] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+            
+            ordersChart = new Chart(ordersCtx, {
+                type: 'bar',
+                data: { labels: [], datasets: [] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // Update Charts
+        function updateCharts(orders, timePeriod) {
+            // Group orders by time period
+            const salesData = {};
+            const ordersData = {};
+            
+            orders.forEach(order => {
+                const orderDate = new Date(order.date);
+                let key;
+                
+                switch(timePeriod) {
+                    case 'day':
+                        key = orderDate.getHours() + ':00';
+                        break;
+                    case 'week':
+                        key = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][orderDate.getDay()];
+                        break;
+                    case 'month':
+                        key = 'Week ' + Math.ceil(orderDate.getDate() / 7);
+                        break;
+                    case 'year':
+                        key = orderDate.toLocaleString('default', { month: 'short' });
+                        break;
+                    default:
+                        key = orderDate.toLocaleDateString();
+                }
+                
+                if (!salesData[key]) {
+                    salesData[key] = 0;
+                    ordersData[key] = 0;
+                }
+                
+                salesData[key] += parseFloat(order.total);
+                ordersData[key] += 1;
+            });
+            
+            // Update sales chart
+            salesChart.data.labels = Object.keys(salesData);
+            salesChart.data.datasets = [{
+                label: 'Sales (EGP)',
+                data: Object.values(salesData),
+                borderColor: '#4a148c',
+                backgroundColor: 'rgba(74, 20, 140, 0.1)',
+                tension: 0.1
+            }];
+            salesChart.update();
+            
+            // Update orders chart
+            ordersChart.data.labels = Object.keys(ordersData);
+            ordersChart.data.datasets = [{
+                label: 'Number of Orders',
+                data: Object.values(ordersData),
+                backgroundColor: 'rgba(74, 20, 140, 0.7)'
+            }];
+            ordersChart.update();
+        }
+
+        // Setup Target Controls
+        function setupTargetControls() {
+            document.getElementById('setTarget').addEventListener('click', () => {
+                const targetAmount = parseInt(document.getElementById('targetAmount').value);
+                if (targetAmount && targetAmount > 0) {
+                    currentTarget = targetAmount;
+                    localStorage.setItem('salesTarget', targetAmount);
+                    targetAchieved = false;
+                    localStorage.setItem('targetAchieved', 'false');
+                    document.getElementById('targetCongratsMessage').style.display = 'none';
+                    loadAnalyticsData(document.getElementById('timePeriod').value);
+                }
+            });
+            
+            document.getElementById('closeCongratsMessage').addEventListener('click', () => {
+                document.getElementById('targetCongratsMessage').style.display = 'none';
+            });
+            
+            document.getElementById('refreshAnalytics').addEventListener('click', () => {
+                loadAnalyticsData(document.getElementById('timePeriod').value);
+            });
+            
+            document.getElementById('timePeriod').addEventListener('change', (e) => {
+                loadAnalyticsData(e.target.value);
+            });
+            
+            if (currentTarget) {
+                document.getElementById('targetAmount').value = currentTarget;
+            }
+        }
+
+        // Add New Product Form
+        function showAddProductForm() {
+            productForm.reset();
+            productFormTitle.textContent = 'Add New Product';
+            document.getElementById('productId').value = '';
+            productFormContainer.style.display = 'block';
+            addProductBtn.style.display = 'none';
+        }
+
+        // Edit Product Form
+        function editProduct(productId) {
+            // Find product in all categories
+            let product;
+            for (const category in products) {
+                const found = products[category].find(p => p.id === productId);
+                if (found) {
+                    product = found;
+                    break;
+                }
+            }
+            
+            if (!product) return;
+            
+            productFormTitle.textContent = 'Edit Product';
+            document.getElementById('productId').value = product.id;
+            document.getElementById('productName').value = product.name;
+            document.getElementById('productCategory').value = getProductCategory(productId);
+            document.getElementById('productPrice').value = product.price;
+            document.getElementById('productOldPrice').value = product.oldPrice || '';
+            document.getElementById('productSizes').value = product.sizes ? product.sizes.replace('Sizes: ', '') : '';
+            document.getElementById('productColors').value = product.colors ? product.colors.join(', ') : '';
+            document.getElementById('productImages').value = product.images.join('\n');
+            document.getElementById('productDescription').value = product.description;
+            document.getElementById('productIsBestSeller').checked = product.isBestSeller || false;
+            document.getElementById('productSoldOut').checked = product.soldOut || false;
+            
+            productFormContainer.style.display = 'block';
+            addProductBtn.style.display = 'none';
+        }
+
+        // Get product category
+        function getProductCategory(productId) {
+            if (products.featured.some(p => p.id === productId)) return 'featured';
+            if (products.eveningDresses.some(p => p.id === productId)) return 'eveningDresses';
+            if (products.casualDresses.some(p => p.id === productId)) return 'casualDresses';
+            return 'featured';
+        }
+
+        // Cancel Product Form
+        function cancelProductForm() {
+            productFormContainer.style.display = 'none';
+            addProductBtn.style.display = 'block';
+        }
+
+        // Save Product
+        function saveProduct(e) {
+            e.preventDefault();
+            
+            const productId = document.getElementById('productId').value || generateId();
+            const productName = document.getElementById('productName').value;
+            const productCategory = document.getElementById('productCategory').value;
+            const productPrice = parseFloat(document.getElementById('productPrice').value);
+            const productOldPrice = parseFloat(document.getElementById('productOldPrice').value) || null;
+            const productSizes = document.getElementById('productSizes').value;
+            const productColors = document.getElementById('productColors').value;
+            const productImages = document.getElementById('productImages').value.split('\n').filter(url => url.trim() !== '');
+            const productDescription = document.getElementById('productDescription').value;
+            const productIsBestSeller = document.getElementById('productIsBestSeller').checked;
+            const productSoldOut = document.getElementById('productSoldOut').checked;
+            
+            // Calculate discount if old price exists
+            let discount = null;
+            if (productOldPrice && productOldPrice > productPrice) {
+                const discountPercent = Math.round(((productOldPrice - productPrice) / productOldPrice) * 100);
+                discount = `${discountPercent}% off`;
+            }
+            
+            const productData = {
+                id: productId,
+                name: productName,
+                price: productPrice,
+                oldPrice: productOldPrice,
+                discount: discount,
+                sizes: productSizes ? `Sizes: ${productSizes}` : null,
+                colors: productColors ? productColors.split(',').map(c => c.trim()) : null,
+                images: productImages,
+                description: productDescription,
+                isBestSeller: productIsBestSeller,
+                soldOut: productSoldOut
+            };
+            
+            // Determine if this is a new product or an update
+            const isNewProduct = !document.getElementById('productId').value;
+            
+            // Update Firebase
+            if (isNewProduct) {
+                // Add to the selected category
+                database.ref(`products/${productCategory}`).once('value', (snapshot) => {
+                    const categoryProducts = snapshot.val() || [];
+                    categoryProducts.push(productData);
+                    database.ref(`products/${productCategory}`).set(categoryProducts)
+                        .then(() => {
+                            showAdminSuccess('Product added successfully!');
+                            cancelProductForm();
+                        })
+                        .catch(error => {
+                            showAdminWarning('Error adding product: ' + error.message);
+                        });
+                });
+            } else {
+                // Update existing product - need to find and update in the correct category
+                let found = false;
+                
+                // Check all categories to find the product
+                for (const category in products) {
+                    const index = products[category].findIndex(p => p.id === productId);
+                    if (index !== -1) {
+                        // Remove from old category if category changed
+                        if (category !== productCategory) {
+                            products[category].splice(index, 1);
+                            database.ref(`products/${category}`).set(products[category]);
+                            
+                            // Add to new category
+                            database.ref(`products/${productCategory}`).once('value', (snapshot) => {
+                                const categoryProducts = snapshot.val() || [];
+                                categoryProducts.push(productData);
+                                database.ref(`products/${productCategory}`).set(categoryProducts)
+                                    .then(() => {
+                                        showAdminSuccess('Product updated successfully!');
+                                        cancelProductForm();
+                                    })
+                                    .catch(error => {
+                                        showAdminWarning('Error updating product: ' + error.message);
+                                    });
+                            });
+                        } else {
+                            // Update in same category
+                            products[category][index] = productData;
+                            database.ref(`products/${category}`).set(products[category])
+                                .then(() => {
+                                    showAdminSuccess('Product updated successfully!');
+                                    cancelProductForm();
+                                })
+                                .catch(error => {
+                                    showAdminWarning('Error updating product: ' + error.message);
+                                });
+                        }
+                        
+                        found = true;
+                        break;
+                    }
+                }
+                
+                if (!found) {
+                    showAdminWarning('Product not found in any category');
+                }
+            }
+        }
+
+        // Delete Product
+        function deleteProduct(productId) {
+            if (!confirm('Are you sure you want to delete this product?')) return;
+            
+            let found = false;
+            
+            // Check all categories to find and remove the product
+            for (const category in products) {
+                const index = products[category].findIndex(p => p.id === productId);
+                if (index !== -1) {
+                    products[category].splice(index, 1);
+                    database.ref(`products/${category}`).set(products[category])
+                        .then(() => {
+                            showAdminSuccess('Product deleted successfully!');
+                        })
+                        .catch(error => {
+                            showAdminWarning('Error deleting product: ' + error.message);
+                        });
+                    
+                    found = true;
+                    break;
+                }
+            }
+            
+            if (!found) {
+                showAdminWarning('Product not found in any category');
+            }
+        }
+
+        // Add New Collection Form
+        function showAddCollectionForm() {
+            collectionForm.reset();
+            collectionFormTitle.textContent = 'Add New Collection';
+            document.getElementById('collectionId').value = '';
+            collectionFormContainer.style.display = 'block';
+            addCollectionBtn.style.display = 'none';
+        }
+
+        // Edit Collection Form
+        function editCollection(collectionId) {
+            const collection = collections.find(c => c.id === collectionId);
+            if (!collection) return;
+            
+            collectionFormTitle.textContent = 'Edit Collection';
+            document.getElementById('collectionId').value = collection.id;
+            document.getElementById('collectionName').value = collection.name;
+            document.getElementById('collectionImage').value = collection.image;
+            document.getElementById('collectionProducts').value = collection.products ? collection.products.join(', ') : '';
+            
+            collectionFormContainer.style.display = 'block';
+            addCollectionBtn.style.display = 'none';
+        }
+
+        // Cancel Collection Form
+        function cancelCollectionForm() {
+            collectionFormContainer.style.display = 'none';
+            addCollectionBtn.style.display = 'block';
+        }
+
+        // Save Collection
+        function saveCollection(e) {
+            e.preventDefault();
+            
+            const collectionId = document.getElementById('collectionId').value || generateId();
+            const collectionName = document.getElementById('collectionName').value;
+            const collectionImage = document.getElementById('collectionImage').value;
+            const collectionProducts = document.getElementById('collectionProducts').value.split(',').map(id => id.trim());
+            
+            const collectionData = {
+                id: collectionId,
+                name: collectionName,
+                image: collectionImage,
+                products: collectionProducts
+            };
+            
+            // Update Firebase
+            database.ref(`collections/${collectionId}`).set(collectionData)
+                .then(() => {
+                    showCollectionSuccess('Collection saved successfully!');
+                    cancelCollectionForm();
+                })
+                .catch(error => {
+                    showAdminWarning('Error saving collection: ' + error.message);
+                });
+        }
+
+        // Delete Collection
+        function deleteCollection(collectionId) {
+            if (!confirm('Are you sure you want to delete this collection?')) return;
+            
+            database.ref(`collections/${collectionId}`).remove()
+                .then(() => {
+                    showCollectionSuccess('Collection deleted successfully!');
+                })
+                .catch(error => {
+                    showAdminWarning('Error deleting collection: ' + error.message);
+                });
+        }
+
+        // Update Order Status
+        function updateOrderStatus(orderId) {
+            const newStatus = document.getElementById(`statusSelect-${orderId}`).value;
+            
+            database.ref('orders').once('value', (snapshot) => {
+                const allOrders = snapshot.val() || {};
+                const orderKey = Object.keys(allOrders).find(key => allOrders[key].id === orderId);
+                
+                if (orderKey) {
+                    database.ref(`orders/${orderKey}`).update({ status: newStatus })
+                        .then(() => {
+                            showAdminSuccess('Order status updated successfully');
+                        })
+                        .catch(error => {
+                            showAdminWarning('Error updating order status: ' + error.message);
+                        });
+                }
+            });
+        }
+
+        // Switch Admin Tab
+        function switchAdminTab(tabId) {
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.admin-tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            document.querySelector(`.admin-tab[data-tab="${tabId}"]`).classList.add('active');
+            document.getElementById(`${tabId}Tab`).classList.add('active');
+            
+            if (tabId === 'analytics') {
+                initAnalytics();
+            }
+        }
+
+        // Generate ID
+        function generateId() {
+            return 'id-' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Show Admin Success Message
+        function showAdminSuccess(message) {
+            adminSuccessMessage.textContent = message;
+            adminSuccessMessage.style.display = 'block';
+            setTimeout(() => {
+                adminSuccessMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // Show Collection Success Message
+        function showCollectionSuccess(message) {
+            collectionSuccessMessage.textContent = message;
+            collectionSuccessMessage.style.display = 'block';
+            setTimeout(() => {
+                collectionSuccessMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // Show Admin Warning Message
+        function showAdminWarning(message) {
+            adminWarningMessage.textContent = message;
+            adminWarningMessage.style.display = 'block';
+            setTimeout(() => {
+                adminWarningMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // Logout Admin
+        function logoutAdmin() {
+            localStorage.removeItem('adminLoggedIn');
+            window.location.href = 'login.html';
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Admin Tabs
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    switchAdminTab(this.dataset.tab);
+                });
+            });
+            
+            // Add Product Button
+            addProductBtn.addEventListener('click', showAddProductForm);
+            
+            // Product Form
+            productForm.addEventListener('submit', saveProduct);
+            
+            // Cancel Product Button
+            cancelProductBtn.addEventListener('click', cancelProductForm);
+            
+            // Add Collection Button
+            addCollectionBtn.addEventListener('click', showAddCollectionForm);
+            
+            // Collection Form
+            collectionForm.addEventListener('submit', saveCollection);
+            
+            // Cancel Collection Button
+            cancelCollectionBtn.addEventListener('click', cancelCollectionForm);
+            
+            // Logout Button
+            adminLogoutBtn.addEventListener('click', logoutAdmin);
+        }
+
+        // Initialize Admin Panel
+        initAdminPanel();
+    </script>
+</body>
+</html>
